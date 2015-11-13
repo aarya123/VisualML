@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+
+<head>
+    <title>VisualML</title>
+    <style>
+    body {
+        font: 11px sans-serif;
+    }
+    
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+    
+    .dot {
+        stroke: #000;
+    }
+    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="form-group col-lg">
+                <input type="text" placeholder="k value" class="form-control" id="kValue">
+                <textarea class="form-control well" placeholder="Input data here" rows="10" id="dataEntryField"></textarea>
+            </div>
+        </div>
+        <br>
+        <button type="button" class="btn btn-default" onclick="startKmeans()">Start!</button>
+        <br>
+    </div>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript">
+    var url = document.location.href;
+    url = url.substring(0, url.lastIndexOf("/") + 1);
+    $.get(url + "testdata/kmeans.data", function(data) {
+        $("#dataEntryField").val(data);
+    });
+    var margin = {
+            top: 20,
+            right: 20,
+            bottom: 30,
+            left: 40
+        },
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    /* 
+     * scale - maps value to a visual display encoding, such as a pixel position.
+     * map function - maps from data value to display value
+     * axis - sets up axis
+     */
+
+    // setup x 
+    var xValue = function(d) {
+            return d.x;
+        }, // data -> value
+        xScale = d3.scale.linear().range([0, width]), // value -> display
+        xMap = function(d) {
+            return xScale(xValue(d));
+        }, // data -> display
+        xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+    // setup y
+    var yValue = function(d) {
+            return d.y;
+        }, // data -> value
+        yScale = d3.scale.linear().range([height, 0]), // value -> display
+        yMap = function(d) {
+            return yScale(yValue(d));
+        }, // data -> display
+        yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    // setup fill color
+    var cValue = function(d) {
+            return d.Manufacturer;
+        },
+        color = d3.scale.category10();
+
+    // add the graph canvas to the body of the webpage
+    var svg = d3.select(".container").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("id", "graph")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // don't want dots overlapping axis, so add in buffer to data domain
+    xScale.domain([-10, 10]);
+    yScale.domain([-10, 10]);
+
+    // x-axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("id", "xaxis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text("x");
+
+    // y-axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr("id", "yaxis")
+        .call(yAxis)
+        .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("y");
+
+    var colorArray = ["#69D2E7", "#A7DBD8", "#E0E4CC", "#F38630", "#FA6900"]
+
+    function adjustAxes(data) {
+        // don't want dots overlapping axis, so add in buffer to data domain
+        xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
+        yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+
+        // x-axis
+        svg.select("#xaxis")
+            .transition().duration(1000).ease("sin-in-out")
+            .call(xAxis);
+
+        // y-axis
+        svg.select("#yaxis")
+            .transition().duration(1000).ease("sin-in-out")
+            .call(yAxis);
+
+    }
+
+    function drawPoints(data) {
+
+        svg.selectAll(".dot").remove();
+
+        svg.selectAll(".dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("class", "dot")
+            .transition().delay(function(d, i) {
+                return 1000 * i / data.length;
+            })
+            .attr("r", 3.5)
+            .attr("cx", xMap)
+            .attr("cy", yMap)
+            .style("fill", function(d) {
+                return colorArray[d.cluster % colorArray.length];
+            });
+    }
+
+    function startKmeans() {
+        data = JSON.parse($("#dataEntryField").val());
+        for (var i = data.length - 1; i >= 0; i--) {
+            data[i].cluster = i % colorArray.length;
+        };
+
+        adjustAxes(data);
+        drawPoints(data);
+    }
+    </script>
+</body>
+
+</html>
