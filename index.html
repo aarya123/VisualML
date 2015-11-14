@@ -235,6 +235,32 @@
         kMeans(data, centroids, 0);
     }
 
+    function computeCentroids(data, k) {
+        centroids = []
+        for (var i = 0; i < k; i++) {
+            centroids[i] = {};
+            centroids[i].x = 0.0;
+            centroids[i].y = 0.0;
+            centroids[i].size = 0;
+        }
+        for (var i = 0; i < data.length; i++) {
+            var point = data[i];
+            centroids[point.cluster].x += point.x;
+            centroids[point.cluster].y += point.y;
+            centroids[point.cluster].size++;
+        }
+        for (var i = 0; i < k; i++) {
+            if (centroids[i].size == 0) {
+                centroids[i] = data[Math.floor(Math.random() * data.length)];
+            } else {
+                centroids[i].x = centroids[i].x / centroids[i].size;
+                centroids[i].y = centroids[i].y / centroids[i].size;
+            }
+            centroids[i].cluster = i;
+        }
+        return centroids;
+    }
+
     function kMeans(data, centroids, iteration) {
         var pointsChanged = false;
         for (var i = 0; i < data.length; i++) {
@@ -249,36 +275,15 @@
                     closest_cluster = j;
                 }
             }
-            if (closest_cluster != i) {
+            if (closest_cluster != data[i].cluster) {
                 data[i].cluster = closest_cluster;
                 pointsChanged = true;
             }
         }
-        var centroid_sizes = [];
-        for (var i = centroids.length - 1; i >= 0; i--) {
-            centroids[i].x = 0.0;
-            centroids[i].y = 0.0;
-            centroid_sizes[i] = 0;
-        }
-        for (var i = data.length - 1; i >= 0; i--) {
-            var point = data[i];
-            centroids[point.cluster].x += point.x;
-            centroids[point.cluster].y += point.y;
-            centroid_sizes[point.cluster] += 1;
-        }
-        for (var i = centroids.length - 1; i >= 0; i--) {
-            if (centroid_sizes[i] == 0) {
-                centroids[i] = data[Math.floor(Math.random() * data.length)];
-            } else {
-                centroids[i].x = centroids[i].x / centroid_sizes[i];
-                centroids[i].y = centroids[i].y / centroid_sizes[i];
-            }
-            centroids[i].cluster = i;
-        }
-        if (iteration % 500 == 0) {
+        centroids = computeCentroids(data, centroids.length);
+        if (iteration % 50 == 0) {
             drawPoints(data);
             drawCentroids(centroids);
-            console.log(centroids);
         }
         if (pointsChanged) {
             setTimeout(function() {
@@ -286,6 +291,7 @@
             }, 100);
         } else {
             drawPoints(data);
+            console.log("Done!")
         }
     }
 
