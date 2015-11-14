@@ -19,6 +19,10 @@
     .dot {
         stroke: #000;
     }
+    
+    .centroid {
+        stroke: #000;
+    }
     </style>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
@@ -121,6 +125,7 @@
         .text("y");
 
     var colorArray;
+    var animationTime = 500;
 
     function adjustAxes(data) {
         // don't want dots overlapping axis, so add in buffer to data domain
@@ -129,12 +134,12 @@
 
         // x-axis
         svg.select("#xaxis")
-            .transition().duration(1000).ease("sin-in-out")
+            .transition().duration(animationTime).ease("sin-in-out")
             .call(xAxis);
 
         // y-axis
         svg.select("#yaxis")
-            .transition().duration(1000).ease("sin-in-out")
+            .transition().duration(animationTime).ease("sin-in-out")
             .call(yAxis);
 
     }
@@ -148,9 +153,29 @@
             .enter().append("circle")
             .attr("class", "dot")
             .transition().delay(function(d, i) {
-                return 1000 * i / data.length;
+                return animationTime * i / data.length;
             })
             .attr("r", 3.5)
+            .attr("cx", xMap)
+            .attr("cy", yMap)
+            .style("fill", function(d) {
+                var color = colorArray[d.cluster];
+                return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+            });
+    }
+
+    function drawCentroids(centroids) {
+
+        svg.selectAll(".centroid").remove();
+
+        svg.selectAll(".centroid")
+            .data(centroids)
+            .enter().append("circle")
+            .attr("class", "centroid")
+            .transition().delay(function(d, i) {
+                return animationTime * i / centroids.length;
+            })
+            .attr("r", 8)
             .attr("cx", xMap)
             .attr("cy", yMap)
             .style("fill", function(d) {
@@ -189,7 +214,6 @@
         textdata = textdata.split("),(");
         var k = parseInt($('#kValue').val());
         colorArray = randomColors(k);
-        console.log(colorArray);
         var data = [];
         for (var i = textdata.length - 1; i >= 0; i--) {
             textdata[i] = textdata[i].replace("(", "");
@@ -203,24 +227,73 @@
         adjustAxes(data);
         drawPoints(data);
         var centroids = [];
-        var clusters = [];
         var randomArr = nRandomNumbers(k, data.length);
         for (var i = randomArr.length - 1; i >= 0; i--) {
             centroids[i] = data[randomArr[i]];
-            clusters[i] = [];
         };
-        clusters[0] = data;
         var pointsChanged = true;
-        while (pointsChanged) {
-            pointsChanged = false;
+        kMeans(data, centroids, 0);
+    }
+
+    function kMeans(data, centroids, iteration) {
+        var pointsChanged = false;
+        for (var i = 0; i < data.length; i++) {
+            var min_distance = Number.MAX_SAFE_INTEGER;
+            var closest_cluster = -1;
+            var point = data[i];
+            for (var j = 0; j < centroids.length; j++) {
+                var centroid = centroids[j];
+                var distance = Math.sqrt(Math.pow(point.x - centroid.x, 2) + Math.pow(point.y - centroid.y, 2));
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    closest_cluster = j;
+                }
+            }
+            if (closest_cluster != i) {
+                data[i].cluster = closest_cluster;
+                pointsChanged = true;
+            }
+        }
+        var centroid_sizes = [];
+        for (var i = centroids.length - 1; i >= 0; i--) {
+            centroids[i].x = 0.0;
+            centroids[i].y = 0.0;
+            centroid_sizes[i] = 0;
+        }
+        for (var i = data.length - 1; i >= 0; i--) {
+            var point = data[i];
+            centroids[point.cluster].x += point.x;
+            centroids[point.cluster].y += point.y;
+            centroid_sizes[point.cluster] += 1;
+        }
+        for (var i = centroids.length - 1; i >= 0; i--) {
+            if (centroid_sizes[i] == 0) {
+                centroids[i] = data[Math.floor(Math.random() * data.length)];
+            } else {
+                centroids[i].x = centroids[i].x / centroid_sizes[i];
+                centroids[i].y = centroids[i].y / centroid_sizes[i];
+            }
+            centroids[i].cluster = i;
+        }
+        if (iteration % 500 == 0) {
+            drawPoints(data);
+            drawCentroids(centroids);
+            console.log(centroids);
+        }
+        if (pointsChanged) {
+            setTimeout(function() {
+                kMeans(data, centroids, iteration + 1);
+            }, 100);
+        } else {
+            drawPoints(data);
         }
     }
 
     function createTestData() {
         points = []
-        for (var i = 0; i < 100; i++) {
-            var x = Math.random() * 10.0;
-            var y = Math.random() * 10.0;
+        for (var i = 0; i < 1000; i++) {
+            var x = Math.round(Math.random() * 1000.0) / 100.0;
+            var y = Math.round(Math.random() * 1000.0) / 100.0;
             points[i] = "(" + x + "," + y + ")";
         };
         $('#dataEntryField').val(points);
