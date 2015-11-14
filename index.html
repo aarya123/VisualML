@@ -46,7 +46,7 @@
     <script src="js/colorutils.js"></script>
     <script type="text/javascript">
     var margin = {
-            top: 20,
+            top: 40,
             right: 20,
             bottom: 30,
             left: 40
@@ -118,6 +118,15 @@
         .style("text-anchor", "end")
         .text("y");
 
+    // title
+    svg.append("text")
+        .attr("id", "title")
+        .attr("x", (width / 2))
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("text-decoration", "underline")
+        .text("K-Means");
     var colorArray;
     var animationTime = 500;
 
@@ -130,8 +139,8 @@
             rangeX = maxX - minX,
             rangeY = maxY - minY;
 
-        xScale.domain([minX - 1/rangeX, maxX + 1/rangeX]);
-        yScale.domain([minY - 1/rangeY, maxY + 1/rangeY]);
+        xScale.domain([minX - 1 / rangeX, maxX + 1 / rangeX]);
+        yScale.domain([minY - 1 / rangeY, maxY + 1 / rangeY]);
 
         // x-axis
         svg.select("#xaxis")
@@ -142,7 +151,11 @@
         svg.select("#yaxis")
             .transition().duration(animationTime).ease("sin-in-out")
             .call(yAxis);
+    }
 
+    function updateTitle(text) {
+        svg.select("#title")
+            .text("K-Means " + text);
     }
 
     function drawPoints(data) {
@@ -274,9 +287,10 @@
             }
         }
         centroids = computeCentroids(data, centroids.length);
-        if (iteration % 50 == 0) {
+        if (iteration % 10 == 0) {
             drawPoints(data);
             drawCentroids(centroids);
+            updateTitle("Iteration #" + iteration);
         }
         if (pointsChanged) {
             setTimeout(function() {
@@ -285,6 +299,7 @@
         } else {
             drawPoints(data);
             drawCentroids(centroids);
+            updateTitle("");
             console.log("Done!")
         }
     }
