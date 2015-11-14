@@ -43,7 +43,7 @@
     <script src="https://code.jquery.com/jquery-2.1.4.min.js" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="js/HsvToRgb.js"></script>
+    <script src="js/colorutils.js"></script>
     <script type="text/javascript">
     var margin = {
             top: 20,
@@ -79,12 +79,6 @@
             return yScale(yValue(d));
         }, // data -> display
         yAxis = d3.svg.axis().scale(yScale).orient("left");
-
-    // setup fill color
-    var cValue = function(d) {
-            return d.Manufacturer;
-        },
-        color = d3.scale.category10();
 
     // add the graph canvas to the body of the webpage
     var svg = d3.select(".container").append("svg")
@@ -184,14 +178,7 @@
             });
     }
 
-    function randomColors(total) {
-        var i = 360 / (total - 1);
-        var r = [];
-        for (var x = 0; x < total; x++) {
-            r.push(hsvToRgb(i * x, 100, 100));
-        }
-        return r;
-    }
+
 
     function nRandomNumbers(n, high) {
         var arr = []
@@ -213,7 +200,7 @@
         var textdata = $("#dataEntryField").val();
         textdata = textdata.split("),(");
         var k = parseInt($('#kValue').val());
-        colorArray = randomColors(k);
+        colorArray = nRandomColors(k);
         var data = [];
         for (var i = textdata.length - 1; i >= 0; i--) {
             textdata[i] = textdata[i].replace("(", "");
