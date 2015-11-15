@@ -36,9 +36,12 @@
                 <textarea class="form-control well" placeholder="Input data here" rows="10" id="dataEntryField" style="resize:none" onkeyup="checkForInput()"></textarea>
             </div>
         </div>
-        <br>
-        <button type="button" class="btn btn-default" id="startButton" onclick="createTestData()">Create test data!</button>
-        <br>
+        <div class="row">
+            <button type="button" class="btn btn-default" id="startButton" onclick="createTestData()">Create test data!</button>
+        </div>
+        <div class="row">
+            <svg id="graph"></svg>
+        </div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
@@ -81,10 +84,9 @@
         yAxis = d3.svg.axis().scale(yScale).orient("left");
 
     // add the graph canvas to the body of the webpage
-    var svg = d3.select(".container").append("svg")
+    var svg = d3.select("#graph")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
-        .attr("id", "graph")
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -172,10 +174,21 @@
             .attr("r", 3.5)
             .attr("cx", xMap)
             .attr("cy", yMap)
+            .attr("id", function(d, i) {
+                return i
+            })
             .style("fill", function(d) {
                 var color = colorArray[d.cluster];
                 return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
             });
+    }
+
+    function updatePoints(data) {
+        svg.selectAll(".dot").each(function(d, i) {
+            var color = colorArray[data[d.id].cluster];
+            var colorFill = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+            d3.select(this).style("fill", colorFill);
+        });
     }
 
     function drawCentroids(centroids) {
@@ -219,17 +232,18 @@
     function startKmeans() {
         var textdata = $("#dataEntryField").val();
         textdata = textdata.split("),(");
+        textdata[0] = textdata[0].replace("(", "");
+        textdata[textdata.length - 1] = textdata[textdata.length - 1].replace(")", "");
         var k = parseInt($('#kValue').val());
         colorArray = nRandomColors(k);
         var data = [];
         for (var i = textdata.length - 1; i >= 0; i--) {
-            textdata[i] = textdata[i].replace("(", "");
-            textdata[i] = textdata[i].replace(")", "");
             var textpoints = textdata[i].split(",");
             data[i] = {};
             data[i].x = parseFloat(textpoints[0]);
             data[i].y = parseFloat(textpoints[1]);
             data[i].cluster = 0;
+            data[i].id = i;
         };
         adjustAxes(data);
         var centroids = [];
@@ -237,7 +251,6 @@
         for (var i = randomArr.length - 1; i >= 0; i--) {
             centroids[i] = data[randomArr[i]];
         };
-        var pointsChanged = true;
         kMeans(data, centroids, 0);
     }
 
