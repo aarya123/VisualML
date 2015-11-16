@@ -83,6 +83,10 @@
         }, // data -> display
         yAxis = d3.svg.axis().scale(yScale).orient("left");
 
+    var dataKey = function(d) {
+        return d.id + "" + d.cluster;
+    };
+
     // add the graph canvas to the body of the webpage
     var svg = d3.select("#graph")
         .attr("width", width + margin.left + margin.right)
@@ -161,57 +165,38 @@
     }
 
     function drawPoints(data) {
-
-        svg.selectAll(".dot").remove();
-
-        svg.selectAll(".dot")
-            .data(data)
+        var dataPoints = svg.selectAll(".dot").data(data, dataKey);
+        dataPoints.attr("class", "update");
+        dataPoints
             .enter().append("circle")
             .attr("class", "dot")
-            .transition().delay(function(d, i) {
-                return animationTime * i / data.length;
-            })
             .attr("r", 3.5)
             .attr("cx", xMap)
             .attr("cy", yMap)
-            .attr("id", function(d, i) {
-                return i
-            })
-            .style("fill", function(d) {
-                var color = colorArray[d.cluster];
-                return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+            .attr("id", function(d) {
+                return d.id;
             });
-    }
-
-    function updatePoints(data) {
-        svg.selectAll(".dot").each(function(d, i) {
+        dataPoints.style("fill", function(d, i) {
             var color = colorArray[data[d.id].cluster];
             var colorFill = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-            d3.select(this).style("fill", colorFill);
+            return colorFill;
         });
+        dataPoints.exit().remove();
     }
 
     function drawCentroids(centroids) {
-
-        svg.selectAll(".centroid").remove();
-
-        svg.selectAll(".centroid")
-            .data(centroids)
-            .enter().append("circle")
+        var dataCentroids = svg.selectAll(".centroid").data(centroids);
+        dataCentroids.enter().append("circle")
             .attr("class", "centroid")
-            .transition().delay(function(d, i) {
-                return animationTime * i / centroids.length;
-            })
-            .attr("r", 8)
-            .attr("cx", xMap)
+            .attr("r", 8);
+        dataCentroids.attr("cx", xMap)
             .attr("cy", yMap)
             .style("fill", function(d) {
                 var color = colorArray[d.cluster];
                 return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
             });
+        dataCentroids.exit().remove();
     }
-
-
 
     function nRandomNumbers(n, high) {
         var arr = []
@@ -251,6 +236,7 @@
         for (var i = randomArr.length - 1; i >= 0; i--) {
             centroids[i] = data[randomArr[i]];
         };
+        drawPoints(data);
         kMeans(data, centroids, 0);
     }
 
@@ -313,7 +299,6 @@
             drawPoints(data);
             drawCentroids(centroids);
             updateTitle("");
-            console.log("Done!")
         }
     }
 
