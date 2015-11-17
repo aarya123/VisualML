@@ -135,6 +135,9 @@
         .text("K-Means");
     var colorArray;
     var animationTime = 500;
+    var animatingCentroids = false;
+    var animatingPoints = false;
+
 
     function adjustAxes(data) {
         // don't want dots overlapping axis, so add in buffer to data domain
@@ -159,42 +162,52 @@
             .call(yAxis);
     }
 
-    function updateTitle(text) {
-        svg.select("#title")
-            .text("K-Means " + text);
+    function drawPoints(data, overloadAnimation) {
+        if (overloadAnimation || !animatingPoints) {
+            var dataPoints = svg.selectAll(".dot").data(data, dataKey);
+            dataPoints
+                .enter().append("circle")
+                .attr("class", "dot")
+                .attr("r", 3.5)
+                .attr("cx", xMap)
+                .attr("cy", yMap)
+                .attr("id", function(d) {
+                    return d.id;
+                });
+            dataPoints.transition().duration(animationTime).style("fill", function(d, i) {
+                var color = colorArray[data[d.id].cluster];
+                var colorFill = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                return colorFill;
+            }).each("end", function(d, i) {
+                if (i + 1 == data.length) {
+                    animatingPoints = false;
+                }
+            });
+            dataPoints.exit().remove();
+            animatingPoints = true;
+        }
     }
 
-    function drawPoints(data) {
-        var dataPoints = svg.selectAll(".dot").data(data, dataKey);
-        dataPoints
-            .enter().append("circle")
-            .attr("class", "dot")
-            .attr("r", 3.5)
-            .attr("cx", xMap)
-            .attr("cy", yMap)
-            .attr("id", function(d) {
-                return d.id;
-            });
-        dataPoints.style("fill", function(d, i) {
-            var color = colorArray[data[d.id].cluster];
-            var colorFill = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-            return colorFill;
-        });
-        dataPoints.exit().remove();
-    }
-
-    function drawCentroids(centroids) {
-        var dataCentroids = svg.selectAll(".centroid").data(centroids);
-        dataCentroids.enter().append("circle")
-            .attr("class", "centroid")
-            .attr("r", 8);
-        dataCentroids.attr("cx", xMap)
-            .attr("cy", yMap)
-            .style("fill", function(d) {
-                var color = colorArray[d.cluster];
-                return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-            });
-        dataCentroids.exit().remove();
+    function drawCentroids(centroids, overloadAnimation) {
+        if (overloadAnimation || !animatingCentroids) {
+            var dataCentroids = svg.selectAll(".centroid").data(centroids);
+            dataCentroids.enter().append("circle")
+                .attr("class", "centroid")
+                .attr("r", 8);
+            dataCentroids.transition().duration(animationTime)
+                .attr("cx", xMap)
+                .attr("cy", yMap)
+                .style("fill", function(d) {
+                    var color = colorArray[d.cluster];
+                    return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                }).each("end", function(d, i) {
+                    if (i + 1 == centroids.length) {
+                        animatingCentroids = false;
+                    }
+                });
+            dataCentroids.exit().remove();
+            animatingCentroids = true;
+        }
     }
 
     function nRandomNumbers(n, high) {
@@ -235,7 +248,6 @@
         for (var i = randomArr.length - 1; i >= 0; i--) {
             centroids[i] = data[randomArr[i]];
         };
-        drawPoints(data);
         kMeans(data, centroids, 0);
     }
 
@@ -287,8 +299,7 @@
         centroids = computeCentroids(data, centroids.length);
         if (iteration % 10 == 0) {
             drawPoints(data);
-            drawCentroids(centroids);
-            updateTitle("Iteration #" + iteration);
+            drawCentroids(centroids, false);
         }
         if (pointsChanged) {
             setTimeout(function() {
@@ -296,8 +307,7 @@
             }, 100);
         } else {
             drawPoints(data);
-            drawCentroids(centroids);
-            updateTitle("");
+            drawCentroids(centroids, true);
         }
     }
 
