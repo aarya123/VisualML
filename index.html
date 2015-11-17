@@ -166,7 +166,6 @@
 
     function drawPoints(data) {
         var dataPoints = svg.selectAll(".dot").data(data, dataKey);
-        dataPoints.attr("class", "update");
         dataPoints
             .enter().append("circle")
             .attr("class", "dot")
