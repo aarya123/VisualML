@@ -32,12 +32,13 @@
     <div class="container">
         <div class="row">
             <div class="form-group col-lg">
-                <input type="text" placeholder="k value" class="form-control" id="kValue">
+                <input type="text" placeholder="k value" class="form-control" id="kValue" onkeyup="checkForInput()">
                 <textarea class="form-control well" placeholder="Input data here" rows="10" id="dataEntryField" style="resize:none" onkeyup="checkForInput()"></textarea>
             </div>
         </div>
         <div class="row">
-            <button type="button" class="btn btn-default" id="startButton" onclick="createTestData()">Create test data!</button>
+            <button type="button" class="btn btn-default" id="startButton" onclick="startKmeans()" disabled="disabled">Start!</button>
+            <button type="button" class="btn btn-default" id="generateButton" onclick="createTestData()">Create test data!</button>
         </div>
         <div class="row">
             <svg id="graph"></svg>
@@ -320,17 +321,14 @@
         };
         $('#dataEntryField').val(points);
         $('#kValue').val(Math.round((Math.random() * 12) + 4));
-        $('#startButton').html("Start!");
-        $('#startButton').attr("onclick", "startKmeans()");
+        $('#startButton').removeAttr("disabled");
     }
 
     function checkForInput() {
         if (!($('#dataEntryField').val() && $("#kValue").val())) {
-            $('#startButton').html("Create test data");
-            $('#startButton').attr("onclick", "createTestData()");
+            $('#startButton').attr("disabled", "disabled");
         } else {
-            $('#startButton').html("Start!");
-            $('#startButton').attr("onclick", "startKmeans()");
+            $('#startButton').removeAttr("disabled");
         }
     }
     </script>
