@@ -85,10 +85,6 @@
         }, // data -> display
         yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-    var dataKey = function(d) {
-        return d.id + "" + d.cluster;
-    };
-
     // add the graph canvas to the body of the webpage
     var svg = d3.select("#graph")
         .attr("width", width + margin.left + margin.right)
@@ -135,10 +131,7 @@
         .style("font-size", "16px")
         .style("text-decoration", "underline")
         .text("K-Means");
-    var colorArray;
-    var animationTime = 500;
-    var animatingCentroids = false;
-    var animatingPoints = false;
+    
 
 
     function adjustAxes(data) {

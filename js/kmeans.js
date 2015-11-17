@@ -1,3 +1,11 @@
+var colorArray;
+var animationTime = 500;
+var animatingCentroids = false;
+var animatingPoints = false;
+var dataKey = function(d) {
+    return d.id + "" + d.cluster;
+};
+
 function kMeans(data, centroids, iteration) {
     var pointsChanged = false;
     for (var i = 0; i < data.length; i++) {
@@ -109,8 +117,7 @@ function drawCentroids(centroids, overloadAnimation) {
             .attr("cx", xMap)
             .attr("cy", yMap)
             .style("fill", function(d) {
-                var color = colorArray[d.cluster];
-                return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
+                return colorArray[d.cluster];
             }).each("end", function(d, i) {
                 if (i + 1 == centroids.length) {
                     animatingCentroids = false;
@@ -134,9 +141,7 @@ function drawPoints(data, overloadAnimation) {
                 return d.id;
             });
         dataPoints.transition().duration(animationTime).style("fill", function(d, i) {
-            var color = colorArray[data[d.id].cluster];
-            var colorFill = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
-            return colorFill;
+            return colorArray[data[d.id].cluster];
         }).each("end", function(d, i) {
             if (i + 1 == data.length) {
                 animatingPoints = false;
