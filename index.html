@@ -38,11 +38,9 @@
             </div>
         </div>
         <div class="row">
-            <button type="button" class="btn btn-default" id="startButton" onclick="startKmeans()" disabled="disabled">Start!</button>
-            <button type="button" class="btn btn-default" id="generateButton" onclick="createTestData()">Create test data!</button>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#dataModal">
-                Launch demo modal
-            </button>
+            <button type="button" class="btn btn-primary" id="startButton" onclick="startKmeans()" disabled="disabled">Start!</button>
+            <button type="button" class="btn btn-default" onclick="createTestData()">Generate test data</button>
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#dataModal">Test data settings</button>
         </div>
         <div class="row">
             <svg id="graph"></svg>
@@ -60,16 +58,16 @@
                     <div class="row center-block">
                         <div class="col-lg-6">
                             <div class="input-group">
-                                <input type="number" class="form-control" value="0">
+                                <input type="number" class="form-control" id="minXInput" value="0">
                                 <span class="input-group-addon" id="basic-addon2">&lt; x &lt;</span>
-                                <input type="number" class="form-control" value="10">
+                                <input type="number" class="form-control" id="maxXInput" value="10">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="input-group">
-                                <input type="number" class="form-control" value="0">
+                                <input type="number" class="form-control" id="minYInput" value="0">
                                 <span class="input-group-addon" id="basic-addon2">&lt; y &lt;</span>
-                                <input type="number" class="form-control" value="10">
+                                <input type="number" class="form-control" id="maxYInput" value="10">
                             </div>
                         </div>
                     </div>
@@ -78,14 +76,20 @@
                         <div class="col-lg-6">
                             <div class="input-group">
                                 <span class="input-group-addon" id="basic-addon2">Sample Size</span>
-                                <input type="number" class="form-control" value="1000">
+                                <input type="number" class="form-control" id="sampleSizeInput" value="1000">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="input-group">
+                                <span class="input-group-addon" id="basic-addon2">Max k</span>
+                                <input type="number" class="form-control" id="maxKInput" value="25">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary" onclick="createTestData()">Generate</button>
                 </div>
             </div>
         </div>
@@ -185,12 +189,10 @@
         var minX = d3.min(data, xValue),
             maxX = d3.max(data, xValue),
             minY = d3.min(data, yValue),
-            maxY = d3.max(data, yValue),
-            rangeX = maxX - minX,
-            rangeY = maxY - minY;
+            maxY = d3.max(data, yValue);
 
-        xScale.domain([minX - 1 / rangeX, maxX + 1 / rangeX]);
-        yScale.domain([minY - 1 / rangeY, maxY + 1 / rangeY]);
+        xScale.domain([minX, maxX]);
+        yScale.domain([minY, maxY]);
 
         // x-axis
         svg.select("#xaxis")
@@ -204,15 +206,25 @@
     }
 
     function createTestData() {
-        points = []
-        for (var i = 0; i < 5000; i++) {
-            var x = Math.round(Math.random() * 1000.0) / 100.0;
-            var y = Math.round(Math.random() * 1000.0) / 100.0;
+        var minX = parseFloat($("#minXInput").val()),
+            maxX = parseFloat($("#maxXInput").val()),
+            minY = parseFloat($("#minYInput").val()),
+            maxY = parseFloat($("#maxYInput").val()),
+            sampleSize = parseInt($("#sampleSizeInput").val()),
+            maxK = parseInt($("#maxKInput").val()),
+            rangeX = maxX - minX,
+            rangeY = maxY - minY,
+            points = [];
+        console.log(minX);
+        for (var i = 0; i < sampleSize; i++) {
+            var x = Math.round((Math.random() * rangeX * 100.0) + (minX * 100.0)) / 100.0;
+            var y = Math.round((Math.random() * rangeY * 100.0) + (minY * 100.0)) / 100.0;
             points[i] = "(" + x + "," + y + ")";
         };
         $('#dataEntryField').val(points);
-        $('#kValue').val(Math.round((Math.random() * 12) + 4));
+        $('#kValue').val(Math.round((Math.random() * (maxK - 1)) + 1));
         $('#startButton').removeAttr("disabled");
+        $('#dataModal').modal('hide');
     }
 
     function checkForInput() {
