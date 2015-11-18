@@ -98,6 +98,7 @@ function startKmeans() {
         data[i].cluster = 0;
         data[i].id = i;
     };
+    svg.selectAll(".dot").remove();
     adjustAxes(data);
     var centroids = [];
     var randomArr = nRandomNumbers(k, data.length);
