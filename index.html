@@ -24,13 +24,46 @@
     .centroid {
         stroke: #000;
     }
+    
+    header {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 79px;
+        padding-left: 20px;
+        background: #0288D1;
+    }
+    
+    .left {
+        position: absolute;
+        height:100%;
+        left: 0;
+        top: 79px;
+        width: 50px;
+        background: #03A9F4;
+    }
+    
+    .main {
+    	padding-top: 20px;
+        position: absolute;
+        left: 50px;
+        top: 79px;
+        right: 0;
+        height:100%;
+    }
     </style>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
 </head>
 
 <body>
-    <div class="container">
+    <header>
+        <h1 style="color:white">VisualML</h1>
+    </header>
+    <div class="left">
+        Hi!
+    </div>
+    <div class="container main">
         <div class="row">
             <div class="form-group col-lg">
                 <input type="text" placeholder="k value" class="form-control" id="kValue" onkeyup="checkForInput()">
