@@ -41,7 +41,7 @@ function kMeans(data, centroids, iteration) {
 }
 
 function computeCentroids(data, k) {
-    centroids = []
+    var centroids = []
     for (var i = 0; i < k; i++) {
         centroids[i] = {};
         centroids[i].x = 0.0;
