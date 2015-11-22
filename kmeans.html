@@ -72,14 +72,9 @@
 <script src="js/colorutils.js"></script>
 <script src="js/kmeans.js"></script>
 <script>
-var margin = {
-        top: 40,
-        right: 20,
-        bottom: 30,
-        left: 40
-    },
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+var margin = 40,
+    width = 960 - 2 * margin,
+    height = 500 - 2 * margin;
 
 /* 
  * scale - maps value to a visual display encoding, such as a pixel position.
@@ -109,10 +104,10 @@ var yValue = function(d) {
 
 // add the graph canvas to the body of the webpage
 var svg = d3.select("#graph")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", width + margin + margin)
+    .attr("height", height + margin + margin)
     .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .attr("transform", "translate(" + margin + "," + margin + ")");
 
 // don't want dots overlapping axis, so add in buffer to data domain
 xScale.domain([-10, 10]);
@@ -148,7 +143,7 @@ svg.append("g")
 svg.append("text")
     .attr("id", "title")
     .attr("x", (width / 2))
-    .attr("y", 0 - (margin.top / 2))
+    .attr("y", 0 - (margin / 2))
     .attr("text-anchor", "middle")
     .style("font-size", "16px")
     .style("text-decoration", "underline");
