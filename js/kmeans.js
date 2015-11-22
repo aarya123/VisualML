@@ -6,6 +6,13 @@ var dataKey = function(d) {
     return d.id + "" + d.cluster;
 };
 
+function updateTitle(text) {
+    if (text != undefined)
+        svg.select("#title").text("K-Means" + text);
+    else
+        svg.select("#title").text("K-Means");
+}
+
 function kMeans(data, centroids, iteration) {
     var pointsChanged = false;
     for (var i = 0; i < data.length; i++) {
@@ -26,7 +33,8 @@ function kMeans(data, centroids, iteration) {
         }
     }
     centroids = computeCentroids(data, centroids.length);
-    if (iteration % 10 == 0) {
+    if (!animatingPoints && !animatingCentroids) {
+        updateTitle(": Iteration #" + (iteration + 1));
         drawPoints(data);
         drawCentroids(centroids, false);
     }
@@ -35,8 +43,9 @@ function kMeans(data, centroids, iteration) {
             kMeans(data, centroids, iteration + 1);
         }, 100);
     } else {
+        updateTitle();
         drawPoints(data);
-        drawCentroids(centroids, true);
+        drawCentroids(centroids);
     }
 }
 
@@ -108,47 +117,46 @@ function startKmeans() {
     kMeans(data, centroids, 0);
 }
 
-function drawCentroids(centroids, overloadAnimation) {
-    if (overloadAnimation || !animatingCentroids) {
-        var dataCentroids = svg.selectAll(".centroid").data(centroids);
-        dataCentroids.enter().append("circle")
-            .attr("class", "centroid")
-            .attr("r", 8);
-        dataCentroids.transition().duration(animationTime)
-            .attr("cx", xMap)
-            .attr("cy", yMap)
-            .style("fill", function(d) {
-                return colorArray[d.cluster];
-            }).each("end", function(d, i) {
-                if (i + 1 == centroids.length) {
-                    animatingCentroids = false;
-                }
-            });
-        dataCentroids.exit().remove();
-        animatingCentroids = true;
-    }
-}
-
-function drawPoints(data, overloadAnimation) {
-    if (overloadAnimation || !animatingPoints) {
-        var dataPoints = svg.selectAll(".dot").data(data, dataKey);
-        dataPoints
-            .enter().append("circle")
-            .attr("class", "dot")
-            .attr("r", 3.5)
-            .attr("cx", xMap)
-            .attr("cy", yMap)
-            .attr("id", function(d) {
-                return d.id;
-            });
-        dataPoints.transition().duration(animationTime).style("fill", function(d, i) {
-            return colorArray[data[d.id].cluster];
+function drawCentroids(centroids) {
+    var dataCentroids = svg.selectAll(".centroid").data(centroids);
+    dataCentroids.enter().append("circle")
+        .attr("style", "stroke: #000;")
+        .attr("class", "centroid")
+        .attr("r", 8);
+    dataCentroids.transition().duration(animationTime)
+        .attr("cx", xMap)
+        .attr("cy", yMap)
+        .style("fill", function(d) {
+            return colorArray[d.cluster];
         }).each("end", function(d, i) {
-            if (i + 1 == data.length) {
-                animatingPoints = false;
+            if (i + 1 == centroids.length) {
+                animatingCentroids = false;
             }
         });
-        dataPoints.exit().remove();
-        animatingPoints = true;
-    }
+    dataCentroids.exit().remove();
+    animatingCentroids = true;
+
+}
+
+function drawPoints(data) {
+    var dataPoints = svg.selectAll(".dot").data(data, dataKey);
+    dataPoints
+        .enter().append("circle")
+        .attr("style", "stroke: #000;")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", xMap)
+        .attr("cy", yMap)
+        .attr("id", function(d) {
+            return d.id;
+        });
+    dataPoints.transition().duration(animationTime).style("fill", function(d, i) {
+        return colorArray[data[d.id].cluster];
+    }).each("end", function(d, i) {
+        if (i + 1 == data.length) {
+            animatingPoints = false;
+        }
+    });
+    dataPoints.exit().remove();
+    animatingPoints = true;
 }
