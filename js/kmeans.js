@@ -1,3 +1,6 @@
+var margin = 40,
+    width = 960 - 2 * margin,
+    height = 500 - 2 * margin;
 var colorArray;
 var animationTime = 500;
 var animatingCentroids = false;
@@ -6,11 +9,123 @@ var dataKey = function(d) {
     return d.id + "" + d.cluster;
 };
 
+var xValue = function(d) {
+        return d.x;
+    },
+    xScale = d3.scale.linear().range([0, width]),
+    xMap = function(d) {
+        return xScale(xValue(d));
+    },
+    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+var yValue = function(d) {
+        return d.y;
+    },
+    yScale = d3.scale.linear().range([height, 0]),
+    yMap = function(d) {
+        return yScale(yValue(d));
+    },
+    yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+var svg = d3.select("#graph")
+    .attr("width", width + margin + margin)
+    .attr("height", height + margin + margin)
+    .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")");
+
+xScale.domain([-10, 10]);
+yScale.domain([-10, 10]);
+
+var xAxisBar = svg.append("g")
+    .attr("class", "x axis")
+    .attr("id", "xaxis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis)
+    .append("text")
+    .attr("class", "label")
+    .attr("x", width)
+    .attr("y", -6)
+    .style("text-anchor", "end")
+    .text("x");
+
+var yAxisBar = svg.append("g")
+    .attr("class", "y axis")
+    .attr("id", "yaxis")
+    .call(yAxis)
+    .append("text")
+    .attr("class", "label")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("y");
+
+var title = svg.append("text")
+    .attr("id", "title")
+    .attr("x", (width / 2))
+    .attr("y", 0 - (margin / 2))
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("text-decoration", "underline")
+    .text("K-Means");
+
+var tooltip = d3.select(".tooltip");
+
+function adjustAxes(data) {
+    // don't want dots overlapping axis, so add in buffer to data domain
+    var minX = d3.min(data, xValue),
+        maxX = d3.max(data, xValue),
+        minY = d3.min(data, yValue),
+        maxY = d3.max(data, yValue);
+
+    xScale.domain([minX, maxX]);
+    yScale.domain([minY, maxY]);
+
+    xAxisBar.transition()
+        .duration(animationTime)
+        .ease("sin-in-out")
+        .call(xAxis);
+
+    yAxisBar.transition()
+        .duration(animationTime)
+        .ease("sin-in-out")
+        .call(yAxis);
+}
+
+function createTestData() {
+    var minX = parseFloat($("#minXInput").val()),
+        maxX = parseFloat($("#maxXInput").val()),
+        minY = parseFloat($("#minYInput").val()),
+        maxY = parseFloat($("#maxYInput").val()),
+        sampleSize = parseInt($("#sampleSizeInput").val()),
+        maxK = parseInt($("#maxKInput").val()),
+        rangeX = maxX - minX,
+        rangeY = maxY - minY,
+        points = [];
+    for (var i = 0; i < sampleSize; i++) {
+        var x = Math.round((Math.random() * rangeX * 100.0) + (minX * 100.0)) / 100.0;
+        var y = Math.round((Math.random() * rangeY * 100.0) + (minY * 100.0)) / 100.0;
+        points[i] = "(" + x + "," + y + ")";
+    };
+    $('#dataEntryField').val(points);
+    $('#kValue').val(Math.round((Math.random() * (maxK - 1)) + 1));
+    $('#startButton').removeAttr("disabled");
+    $('#dataModal').modal('hide');
+}
+
+function checkForInput() {
+    if (!($('#dataEntryField').val() && $("#kValue").val())) {
+        $('#startButton').attr("disabled", "disabled");
+    } else {
+        $('#startButton').removeAttr("disabled");
+    }
+}
+
 function updateTitle(text) {
     if (text != undefined)
-        svg.select("#title").text("K-Means" + text);
+        title.text("K-Means" + text);
     else
-        svg.select("#title").text("K-Means");
+        title.text("K-Means");
 }
 
 function kMeans(data, centroids, iteration) {
@@ -108,6 +223,7 @@ function startKmeans() {
         data[i].id = i;
     };
     svg.selectAll(".dot").remove();
+    svg.selectAll(".centroid").remove();
     adjustAxes(data);
     var centroids = [];
     var randomArr = nRandomNumbers(k, data.length);
@@ -119,10 +235,24 @@ function startKmeans() {
 
 function drawCentroids(centroids) {
     var dataCentroids = svg.selectAll(".centroid").data(centroids);
+    var svgOffset = $("#graph").offset();
     dataCentroids.enter().append("circle")
         .attr("style", "stroke: #000;")
         .attr("class", "centroid")
-        .attr("r", 8);
+        .attr("r", 8)
+        .on("mouseover", function(d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html("Position: (" + d.x.toFixed(3) + ", " + d.y.toFixed(3) + ")<br>Cluster Size: "+d.size)
+                .style("left", (xMap(d) + svgOffset.left) + "px")
+                .style("top", (yMap(d) + svgOffset.top - 40 /*For the header*/ ) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
     dataCentroids.transition().duration(animationTime)
         .attr("cx", xMap)
         .attr("cy", yMap)
@@ -135,7 +265,6 @@ function drawCentroids(centroids) {
         });
     dataCentroids.exit().remove();
     animatingCentroids = true;
-
 }
 
 function drawPoints(data) {
