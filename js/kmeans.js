@@ -69,6 +69,8 @@ var title = svg.append("text")
     .style("text-decoration", "underline")
     .text("K-Means");
 
+var tooltip = d3.select(".tooltip");
+
 function adjustAxes(data) {
     // don't want dots overlapping axis, so add in buffer to data domain
     var minX = d3.min(data, xValue),
@@ -233,10 +235,24 @@ function startKmeans() {
 
 function drawCentroids(centroids) {
     var dataCentroids = svg.selectAll(".centroid").data(centroids);
+    var svgOffset = $("#graph").offset();
     dataCentroids.enter().append("circle")
         .attr("style", "stroke: #000;")
         .attr("class", "centroid")
-        .attr("r", 8);
+        .attr("r", 8)
+        .on("mouseover", function(d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html("Position: (" + d.x.toFixed(3) + ", " + d.y.toFixed(3) + ")<br>Cluster Size: "+d.size)
+                .style("left", (xMap(d) + svgOffset.left) + "px")
+                .style("top", (yMap(d) + svgOffset.top - 40 /*For the header*/ ) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
     dataCentroids.transition().duration(animationTime)
         .attr("cx", xMap)
         .attr("cy", yMap)
@@ -249,7 +265,6 @@ function drawCentroids(centroids) {
         });
     dataCentroids.exit().remove();
     animatingCentroids = true;
-
 }
 
 function drawPoints(data) {
