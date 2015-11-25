@@ -66,7 +66,7 @@ function nRandomColors(total) {
     var i = 360 / (total - 1);
     var r = [];
     for (var x = 0; x < total; x++) {
-        var color = hsvToRgb(i * x, 100, 100);
+        var color = hsvToRgb(i * x, Math.random() * 100 + 50, Math.random() * 50 + 75);
         var colorString = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")"
         r.push(colorString);
     }
