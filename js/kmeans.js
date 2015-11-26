@@ -1,5 +1,5 @@
 var margin = 40,
-    width = 960 - 2 * margin,
+    width = $(".row").width() - 2 * margin,
     height = 500 - 2 * margin;
 var colorArray;
 var animationTime = 500;
@@ -77,7 +77,6 @@ function adjustAxes(data) {
         maxX = d3.max(data, xValue),
         minY = d3.min(data, yValue),
         maxY = d3.max(data, yValue);
-
     xScale.domain([minX, maxX]);
     yScale.domain([minY, maxY]);
 
@@ -244,7 +243,7 @@ function drawCentroids(centroids) {
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-            tooltip.html("Position: (" + d.x.toFixed(3) + ", " + d.y.toFixed(3) + ")<br>Cluster Size: "+d.size)
+            tooltip.html("Position: (" + d.x.toFixed(3) + ", " + d.y.toFixed(3) + ")<br>Cluster Size: " + d.size)
                 .style("left", (xMap(d) + svgOffset.left) + "px")
                 .style("top", (yMap(d) + svgOffset.top - 40 /*For the header*/ ) + "px");
         })
