@@ -38,28 +38,25 @@
 }
 </style>
 <div class="sidebar">
-    <a href="?algo=kmeans">
-        <div class="sidebar-item selected">
-            <img src="images/kmeans.png" class="sidebar-icon">
-            <span class="sidebar-text">K-Means</span>
-        </div>
-    </a>
-    <a href="?algo=kmeans">
-        <div class="sidebar-item">
-            <img src="images/kmeans.png" class="sidebar-icon">
-            <span class="sidebar-text">K-Means</span>
-        </div>
-    </a>
-    <a href="?algo=kmeans">
-        <div class="sidebar-item">
-            <img src="images/kmeans.png" class="sidebar-icon">
-            <span class="sidebar-text">K-Means</span>
-        </div>
-    </a>
-    <a href="?algo=kmeans">
-        <div class="sidebar-item">
-            <img src="images/kmeans.png" class="sidebar-icon">
-            <span class="sidebar-text">K-Means</span>
-        </div>
-    </a>
+    <div class="sidebar-item selected" onclick="navigate('kmeans')">
+        <img src="images/kmeans.png" class="sidebar-icon">
+        <span class="sidebar-text">K-Means</span>
+    </div>
+    <div class="sidebar-item" onclick="navigate('kmeans')">
+        <img src="images/kmeans.png" class="sidebar-icon">
+        <span class="sidebar-text">K-Means</span>
+    </div>
+    <div class="sidebar-item" onclick="navigate('kmeans')">
+        <img src="images/kmeans.png" class="sidebar-icon">
+        <span class="sidebar-text">K-Means</span>
+    </div>
+    <div class="sidebar-item" onclick="navigate('kmeans')">
+        <img src="images/kmeans.png" class="sidebar-icon">
+        <span class="sidebar-text">K-Means</span>
+    </div>
 </div>
+<script type="text/javascript">
+function navigate(algo) {
+    window.location.href = document.location.origin + "?algo=" + algo;
+}
+</script>
